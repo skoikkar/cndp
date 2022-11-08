@@ -1,83 +1,63 @@
 # CNDP - Cloud Native Data Plane
 
-## Ubuntu Installation Instructions
+## Installation Instructions
 
-This section assumes you are building on an Ubuntu 21.04 host. It provides minimal
-instructions to run CNDP applications. For more information, refer to the CNDP documentation.
+This provides a minimal instructions to build and run CNDP applications.
+For more information, refer to the CNDP documentation.
 
-### Ubuntu Prerequisites
+### Prerequisites
 
 If behind a proxy server you may need to setup a number of configurations to allow access via the server.
-Some commands i.e. apt-get, git, ssh, curl, wget and others will need configuration to work correctly.
-Please refer to apt-get, git and other documentations to enable access through a proxy server.
+Some commands i.e. apt, dnf, git, ssh, curl, wget and others will need configuration to work correctly.
+Please refer to apt, dnf, git and other documentations to enable access through a proxy server.
 
-### Ubuntu Dependencies
+### Dependencies
 
 The following package are required to build CNDP libraries and examples.
 
+#### UBUNTU
 ```bash
 sudo apt-get update && sudo apt-get install -y \
     build-essential libbsd-dev libelf-dev libjson-c-dev libnl-3-dev libnl-cli-3-dev libnuma-dev \
-    libpcap-dev meson pkg-config
+    libpcap-dev meson pkg-config git gcc-multilib clang llvm lld m4
+```
+#### Fedora
+```bash
+dnf update && dnf -y install \
+    @development-tools git libbsd-devel json-c-devel libnl3-devel libnl3-cli \
+    numactl-libs libbpf-devel libbpf meson ninja-build gcc-c++ \
+    libpcap libpcap-devel clang llvm lld m4
 ```
 
 #### Optional packages needed to build documentation
 
 ```bash
-sudo apt-get install -y doxygen python3-sphinx
+doxygen and python3-sphinx
 ```
 
 ### libbpf
 
-The [libbpf](https://github.com/libbpf/libbpf) is a dependency of CNDP. Starting with Ubuntu 20.10
-it can be installed using apt. For earlier Ubuntu versions, or for users who want the latest code,
-it can be installed from source.
+The [libbpf](https://github.com/libbpf/libbpf) is a dependency of CNDP.
 
 #### _Note:_
 
-Newer versions of libbpf greater than or equal to v0.7.0 require _libxdp_ to be installed. For now we
-can checkout a previous version v0.5.0 or v0.6.1 instead of installing _libxdp_.
-
-### Install libbpf-dev from package manager
-
-Use the following command on Ubuntu 20.10 and later to install the headers and libraries to build
-and run CNDP applications. If using an earlier Ubuntu version, you need to build libbpf from source.
-
-```bash
-sudo apt-get install -y libbpf-dev
-```
+Older version of Kernel will not work with latest libbpf so older version like v0.5.0 or v0.6.1
+should be used.
 
 ### Install libbpf from source
 
+Clone libxdp:
 ```bash
 git clone https://github.com/libbpf/libbpf.git
 cd libbpf
-git checkout v0.5.0  # or v0.6.1 if needing a newer version
+git checkout v0.5.0  # this step is optional only needed if the kernel version is old.
 make -C src && sudo make -C src install
 ```
 
 The library and pkgconfig file is installed to /usr/lib64, which is not where the loader or
-pkg-config looks. Fix this by editing the ldconfig file as suggested below.
-
-```bash
-sudo vim /etc/ld.so.conf.d/x86_64-linux-gnu.conf
-# add a line with /usr/lib64 to the bottom of the file, save and exit.
-sudo ldconfig
-```
-
-The following statement may be necessary if libbpf is installed from source instead of the package manager.
-
-```cmd
-export PKG_CONFIG_PATH=/usr/lib64/pkgconfig
-```
+pkg-config looks. Fix this by editing the ldconfig file and PKG_CONFIG_PATH.
 
 ### Install libxdp from source
-
-Install dependencies:
-
-```cmd
-sudo apt-get update; sudo apt-get install -y git gcc-multilib clang llvm lld m4
-```
 
 Clone libxdp:
 
@@ -109,19 +89,6 @@ ELF support: yes
 pcap support: yes
 secure_getenv support: yes
 ```
-
-Build and install the libbpf git submodule:
-
-```cmd
-cd lib/libbpf/
-git submodule init && git submodule update
-cd src
-make CFLAGS+=-fpic; PREFIX=/usr make install
-cd -
-```
-
-Update pkg-config path as shown in the previous section.
-
 In the top level xdp-tools directory:
 
 ```cmd
@@ -139,22 +106,6 @@ on some systems it maybe necessary to run:
 
 ```bash
 export PKG_CONFIG_PATH=/usr/lib/pkgconfig
-```
-
-## Fedora Installation Instructions
-
-This section assumes you are building on a Fedora 35 host with a 5.17.5 Kernel version. It provides
-minimal instructions to run CNDP applications. For more information, refer to the CNDP documentation.
-
-### Fedora dependencies
-
-The following package are required to build CNDP libraries and examples.
-
-```bash
-sudo dnf update && sudo dnf -y install \
-    @development-tools git libbsd-devel json-c-devel libnl3-devel libnl3-cli \
-    numactl-libs libbpf-devel libbpf meson ninja-build gcc-c++ \
-    libpcap libpcap-devel libxdp-devel libxdp
 ```
 
 ## Hugepage Configuration
